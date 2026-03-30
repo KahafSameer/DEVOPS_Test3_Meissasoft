@@ -15,6 +15,11 @@ jobs:
     # -------------------------------
     # 🔍 Gitleaks: Secret / API key detection
     # -------------------------------
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
     - name: Run Gitleaks
       uses: gitleaks/gitleaks-action@v2
       env:
