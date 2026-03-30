@@ -7,10 +7,17 @@ on:
 jobs:
   security-checks:
     runs-on: ubuntu-latest
+    # Permissions lazmi hain taake Gitleaks aur CodeQL sahi se kaam karein
+    permissions:
+      contents: read
+      security-events: write
+      pull-requests: read
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # Gitleaks ke liye poori history scan karna behtar hai
 
     # -------------------------------
     # 🔍 CodeQL: Static code analysis
@@ -18,7 +25,7 @@ jobs:
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v3
       with:
-        languages: javascript, typescript
+        languages: javascript-typescript # Combine languages for modern setup
 
     - name: Autobuild (CodeQL)
       uses: github/codeql-action/autobuild@v3
@@ -27,10 +34,12 @@ jobs:
       uses: github/codeql-action/analyze@v3
 
     # -------------------------------
-    # 🔍 Gitleaks: Secret / API key detection
+    # 🔍 Gitleaks: FIXED STEP ✅
     # -------------------------------
     - name: Run Gitleaks
       uses: gitleaks/gitleaks-action@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Ye missing tha!
 
     # -------------------------------
     # 🔍 Trivy: Vulnerability scan
@@ -43,12 +52,16 @@ jobs:
         exit-code: '1'
 
     # -------------------------------
-    # Optional: Node.js setup + dependencies
+    # Node.js setup + dependencies
     # -------------------------------
     - name: Install Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4 # Updated to v4
       with:
         node-version: '20'
+        cache: 'npm' # Build fast karne ke liye caching zaroori hai
+        cache-dependency-path: |
+          backend/package-lock.json
+          frontend/package-lock.json
 
     - name: Install Dependencies (Backend)
       run: |
