@@ -1,0 +1,50 @@
+name: Secure CI Pipeline
+
+on:
+  pull_request:
+    branches: [dev, main]
+
+jobs:
+  security-checks:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    # -------------------------------
+    # 🔍 Gitleaks: Secret / API key detection
+    # -------------------------------
+    - name: Run Gitleaks
+      uses: gitleaks/gitleaks-action@v2
+      with:
+        # optional: path to scan, default is repo root
+        path: .
+
+    # -------------------------------
+    # 🔍 Trivy: Vulnerability scan
+    # -------------------------------
+    - name: Run Trivy (filesystem scan)
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        severity: 'CRITICAL,HIGH'
+        exit-code: '1'   # Fail job if CRITICAL/HIGH found
+
+    # -------------------------------
+    # Optional: Add lint/build steps if you want
+    # -------------------------------
+    - name: Install Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20'
+
+    - name: Install Dependencies (Backend)
+      run: |
+        cd backend
+        npm ci
+
+    - name: Install Dependencies (Frontend)
+      run: |
+        cd frontend
+        npm ci
