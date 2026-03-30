@@ -31,12 +31,12 @@ jobs:
     # -------------------------------
     - name: Run Gitleaks
       uses: gitleaks/gitleaks-action@v2
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+      # with:
+      #   github_token: ${{ secrets.GITHUB_TOKEN }}
 
-    # -------------------------------
-    # 🔍 Trivy: Vulnerability scan
-    # -------------------------------
+      # -------------------------------
+      # 🔍 Trivy: Vulnerability scan
+      # -------------------------------
     - name: Run Trivy (filesystem scan)
       uses: aquasecurity/trivy-action@master
       with:
