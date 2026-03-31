@@ -1,0 +1,18 @@
+# .gitleaks.toml
+
+title = "Custom Gitleaks Config"
+description = "Scan .env, config, JS/TS files for secrets"
+
+# Rule for environment variables
+[[rules]]
+description = "Environment variable in .env or config"
+regex = '''(?i)(?:AWS|SECRET|API|PASSWORD|TOKEN|KEY|DB_PASSWORD|PRIVATE_KEY)[=:].*'''
+tags = ["key", "env"]
+files = ['.*\.env$', '.*\.config$', '.*\.json$', '.*\.js$', '.*\.ts$']
+
+# Rule for private keys
+[[rules]]
+description = "Private key detection"
+regex = '''-----BEGIN (?:RSA|DSA|EC|OPENSSH) PRIVATE KEY-----'''
+tags = ["key"]
+files = ['.*']

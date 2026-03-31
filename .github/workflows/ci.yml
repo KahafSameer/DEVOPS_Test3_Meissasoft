@@ -37,9 +37,9 @@ jobs:
     # 🔍 Gitleaks: full filesystem scan
     # -------------------------------
     - name: Run Gitleaks
-      uses: gitleaks/gitleaks-action@v2
+      uses: gitleaks/gitleaks-action@v8
       with:
-        args: detect --source . --no-git --redact --verbose --exit-code 1
+        args: detect --source . --all-files --config-path .gitleaks.toml --verbose --exit-code 1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
