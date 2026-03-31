@@ -1,6 +1,8 @@
 name: Secure CI Pipeline
 
 on:
+  push:
+    branches: [ dev, main ]
   pull_request:
     branches: [ dev, main ]
 
@@ -34,12 +36,14 @@ jobs:
       uses: github/codeql-action/analyze@v3
 
     # -------------------------------
-    # 🔍 Gitleaks: FIXED STEP ✅
+    # 🔍 Gitleaks: full filesystem scan
     # -------------------------------
     - name: Run Gitleaks
       uses: gitleaks/gitleaks-action@v2
+      with:
+        args: detect --source . --no-git --redact --verbose --exit-code 1
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Ye missing tha!
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     # -------------------------------
     # 🔍 Trivy: Vulnerability scan
