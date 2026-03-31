@@ -33,3 +33,4 @@ import { TodosModule } from './todos/todos.module';
 })
 export class AppModule {}
 
+const apiKey = "AKIA1234567890TESTKEY";
