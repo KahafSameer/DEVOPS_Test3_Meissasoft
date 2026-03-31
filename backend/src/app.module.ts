@@ -16,14 +16,18 @@ import { TodosModule } from './todos/todos.module';
           throw new Error('DATABASE_URL is not set');
         }
 
+        // Many local Postgres setups do not support SSL; only enable SSL when explicitly requested.
+        // You can request SSL via DATABASE_SSL=true or by using sslmode=require|verify-ca|verify-full in DATABASE_URL.
+        const sslRequested =
+          process.env.DATABASE_SSL === 'true' ||
+          /sslmode=(require|verify-ca|verify-full)/.test(url);
+
         return {
           type: 'postgres' as const,
           url,
           autoLoadEntities: true,
           synchronize: true,
-          ssl: {
-            rejectUnauthorized: false,
-          },
+          ssl: sslRequested ? { rejectUnauthorized: false } : false,
         };
       },
     }),

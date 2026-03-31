@@ -9,17 +9,8 @@ import {
   ParseIntPipe,
 } from '@nestjs/common';
 import { TodosService } from './todos.service';
-
-class CreateTodoBody {
-  title: string;
-  description?: string | null;
-}
-
-class UpdateTodoBody {
-  title?: string;
-  description?: string | null;
-  isCompleted?: boolean;
-}
+import { CreateTodoDto } from './dto/create-todo.dto';
+import { UpdateTodoDto } from './dto/update-todo.dto';
 
 @Controller('todos')
 export class TodosController {
@@ -36,14 +27,14 @@ export class TodosController {
   }
 
   @Post()
-  create(@Body() body: CreateTodoBody) {
+  create(@Body() body: CreateTodoDto) {
     return this.todosService.create(body);
   }
 
   @Patch(':id')
   update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() body: UpdateTodoBody,
+    @Body() body: UpdateTodoDto,
   ) {
     return this.todosService.update(id, body);
   }

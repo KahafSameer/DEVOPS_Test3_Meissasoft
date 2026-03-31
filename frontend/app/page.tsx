@@ -20,6 +20,7 @@ export default function HomePage() {
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'completed'>('all');
 
   const fetchTodos = async () => {
     try {
@@ -66,10 +67,39 @@ export default function HomePage() {
     }
   };
 
+  const handleToggleComplete = async (todo: Todo) => {
+    try {
+      const updated = { ...todo, isCompleted: !todo.isCompleted };
+      setTodos((prev) =>
+        prev.map((t) => (t.id === todo.id ? updated : t)),
+      );
+      await axios.patch(`${API_BASE_URL}/todos/${todo.id}`, {
+        isCompleted: updated.isCompleted,
+      });
+    } catch (error) {
+      console.error('Failed to update todo', error);
+      // revert on error
+      setTodos((prev) =>
+        prev.map((t) =>
+          t.id === todo.id ? { ...t, isCompleted: todo.isCompleted } : t,
+        ),
+      );
+    }
+  };
+
+  const filteredTodos = todos.filter((todo) => {
+    if (activeFilter === 'active') return !todo.isCompleted;
+    if (activeFilter === 'completed') return todo.isCompleted;
+    return true;
+  });
+
   return (
     <main className="min-h-screen bg-slate-900 text-slate-100 flex flex-col items-center px-4 py-10">
       <div className="w-full max-w-2xl">
-        <h1 className="text-3xl font-bold mb-6 text-center">ToDo List</h1>
+        <h1 className="text-3xl font-bold mb-2 text-center">Smart ToDo List</h1>
+        <p className="text-center text-slate-400 mb-6 text-sm">
+          Track tasks, focus on what matters, and keep your day under control.
+        </p>
 
         <form
           onSubmit={handleAddTodo}
@@ -99,25 +129,84 @@ export default function HomePage() {
         </form>
 
         <section className="bg-slate-800 rounded-xl p-4 shadow-lg">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-xl font-semibold">Todos</h2>
+          <div className="flex flex-col gap-3 mb-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-xl font-semibold">Todos</h2>
+              <p className="text-xs text-slate-400">
+                {todos.length} total ·{' '}
+                {todos.filter((t) => !t.isCompleted).length} active ·{' '}
+                {todos.filter((t) => t.isCompleted).length} completed
+              </p>
+            </div>
+            <div className="flex gap-2 self-start">
+              <button
+                onClick={() => setActiveFilter('all')}
+                className={`px-3 py-1 rounded-full text-xs border transition ${
+                  activeFilter === 'all'
+                    ? 'bg-emerald-500 text-slate-950 border-emerald-500'
+                    : 'border-slate-600 text-slate-300 hover:border-emerald-500/70'
+                }`}
+              >
+                All
+              </button>
+              <button
+                onClick={() => setActiveFilter('active')}
+                className={`px-3 py-1 rounded-full text-xs border transition ${
+                  activeFilter === 'active'
+                    ? 'bg-emerald-500 text-slate-950 border-emerald-500'
+                    : 'border-slate-600 text-slate-300 hover:border-emerald-500/70'
+                }`}
+              >
+                Active
+              </button>
+              <button
+                onClick={() => setActiveFilter('completed')}
+                className={`px-3 py-1 rounded-full text-xs border transition ${
+                  activeFilter === 'completed'
+                    ? 'bg-emerald-500 text-slate-950 border-emerald-500'
+                    : 'border-slate-600 text-slate-300 hover:border-emerald-500/70'
+                }`}
+              >
+                Completed
+              </button>
+            </div>
             {loading && (
-              <span className="text-xs text-slate-400">Loading...</span>
+              <span className="text-xs text-slate-400 self-start">Loading...</span>
             )}
           </div>
-          {todos.length === 0 && !loading ? (
+          {filteredTodos.length === 0 && !loading ? (
             <p className="text-slate-400 mt-2 text-sm">
               No todos yet. Add your first one above.
             </p>
           ) : (
             <ul className="divide-y divide-slate-700">
-              {todos.map((todo) => (
+              {filteredTodos.map((todo) => (
                 <li
                   key={todo.id}
                   className="flex items-start justify-between gap-3 py-3"
                 >
-                  <div>
-                    <p className="font-medium">{todo.title}</p>
+                  <div className="flex items-start gap-3">
+                    <button
+                      onClick={() => handleToggleComplete(todo)}
+                      className={`mt-1 h-4 w-4 rounded border flex items-center justify-center text-[10px] ${
+                        todo.isCompleted
+                          ? 'bg-emerald-500 border-emerald-500 text-slate-950'
+                          : 'border-slate-500 text-slate-500 hover:border-emerald-400'
+                      }`}
+                      aria-label={
+                        todo.isCompleted ? 'Mark as incomplete' : 'Mark as completed'
+                      }
+                    >
+                      {todo.isCompleted && '✓'}
+                    </button>
+                    <div>
+                      <p
+                        className={`font-medium ${
+                          todo.isCompleted ? 'line-through text-slate-400' : ''
+                        }`}
+                      >
+                        {todo.title}
+                      </p>
                     {todo.description && (
                       <p className="text-sm text-slate-300">
                         {todo.description}
@@ -130,6 +219,12 @@ export default function HomePage() {
                         timeStyle: 'short',
                       })}
                     </p>
+                    {todo.isCompleted && (
+                      <span className="inline-flex mt-1 px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 text-[10px] font-semibold uppercase tracking-wide">
+                        Done
+                      </span>
+                    )}
+                    </div>
                   </div>
                   <button
                     onClick={() => handleDeleteTodo(todo.id)}
